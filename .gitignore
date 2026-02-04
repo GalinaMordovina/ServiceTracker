@@ -1,0 +1,69 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# кеши и байткод, логи
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+
+# Виртуальные окружения
+venv/
+env/
+.venv/
+
+# Чувствительные файлы
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# ОС файлы
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Test coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+
+# MyPy
+.mypy_cache/
+
+# Pytest
+.pytest_cache/
+
+# build and dist folders
+build/
+dist/
+*.egg-info/
+
+# Django specific
+media/*
+!media/.gitkeep
+staticfiles/
+*.mo
+# *.pot
+
+# Fixtures backups
+*.json
+
+# Local database
+db.sqlite3
+
+# Celery beat
+celerybeat-schedule*
