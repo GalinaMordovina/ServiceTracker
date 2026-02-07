@@ -12,7 +12,7 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # Режим отладки:
-DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
 # Список разрешённых хостов
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
@@ -69,9 +69,13 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # База данных
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",  # Движок базы данных
+        "NAME": os.getenv("POSTGRES_DB"),  # Имя базы данных
+        "USER": os.getenv("POSTGRES_USER"),  # Пользователь
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),  # Пароль пользователя
+        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
+        "PORT": os.getenv("POSTGRES_PORT", "5432"),
     }
 }
 
@@ -107,6 +111,9 @@ USE_TZ = True
 
 # Статические и медиа-файлы
 STATIC_URL = 'static/'
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Это настройка Django, которая определяет тип поля первичного ключа (id),
 # создаваемого по умолчанию для всех моделей, если я явно не указала id в модели.
