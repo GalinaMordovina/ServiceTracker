@@ -54,7 +54,7 @@ class Task(models.Model):
     class Status(models.TextChoices):
         NEW = "NEW", "Новая"
         IN_PROGRESS = "IN_PROGRESS", "В работе"
-        RETURNED = "RETURNED", "Возвращена"
+        REVIEW = "REVIEW", "На проверке"
         DONE = "DONE", "Завершена"
 
     title = models.CharField(
@@ -72,6 +72,11 @@ class Task(models.Model):
         null=True,
         verbose_name="Отчёт/документ",
     )
+    review_comment = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Комментарий проверяющего",
+    )
     assignee = models.ForeignKey(
         Employee,
         on_delete=models.SET_NULL,  # если сотрудника удалили у задачи assignee станет NULL
@@ -79,6 +84,12 @@ class Task(models.Model):
         blank=True,
         related_name="tasks",       # employee.tasks.all()
         verbose_name="Исполнитель",
+    )
+    owner = models.ForeignKey(
+        "Employee",
+        on_delete=models.PROTECT,
+        related_name="owned_tasks",
+        verbose_name="Владелец задачи",
     )
     status = models.CharField(
         max_length=20,
@@ -97,19 +108,25 @@ class Task(models.Model):
     def clean(self) -> None:
         """
         Бизнес-валидация задачи.
-        Отчёт (report_file) разрешён только для статусов DONE и RETURNED.
+        Отчёт (report_file) разрешён только для статусов DONE и REVIEW (для статуса DONE отчет обязателен).
+        Владелец задачи (owner) не может быть её исполнителем (assignee).
         """
-        allowed_statuses = {self.Status.DONE, self.Status.RETURNED}
+        allowed_statuses = {self.Status.DONE, self.Status.REVIEW}
 
+        # 1) Если отчёт прикреплён, статус должен быть DONE или REVIEW
         if self.report_file and self.status not in allowed_statuses:
             raise ValidationError(
-                {
-                    "report_file": (
-                        "Отчёт можно прикреплять только для задач "
-                        "со статусом DONE или RETURNED."
-                    )
-                }
+                {"report_file": "Отчёт можно прикреплять только для задач со статусом DONE или REVIEW."}
             )
+
+        # 2) Если статус DONE отчёт обязателен
+        if self.status == self.Status.DONE and not self.report_file:
+            raise ValidationError(
+                {"report_file": "Для статуса DONE необходимо прикрепить отчёт."}
+            )
+        # (owner != assignee) self.owner и self.assignee - это ORM-объекты - добавить _id?
+        if self.assignee is not None and self.owner == self.assignee:
+            raise ValidationError({"assignee": "Владелец задачи не может быть её исполнителем."})
 
     def save(self, *args, **kwargs):
         # Запускает:
@@ -123,6 +140,15 @@ class Task(models.Model):
         db_table = "tasks"
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
+
+        constraints = [
+            # Запрет: владелец задачи не может быть её исполнителем
+            models.CheckConstraint(
+                condition=Q(assignee__isnull=True) | ~Q(owner=F("assignee")),
+                name="prevent_owner_is_assignee",
+            ),
+        ]
+
         # Индексы ускоряют фильтры в API (assignee/status/due_date)
         indexes = [
             models.Index(fields=["status"], name="idx_tasks_status"),

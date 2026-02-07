@@ -2,16 +2,18 @@
 
 ### База данных (PostgreSQL)
 - Спроектированы и реализованы таблицы:
-  - `employees`
-  - `tasks`
-  - `task_dependencies`
-- Настроены внешние ключи (FOREIGN KEY) и правила удаления:
-  - `tasks.assignee_id → employees.id (ON DELETE SET NULL)`
-  - `task_dependencies.parent_task_id → tasks.id (ON DELETE CASCADE)`
-  - `task_dependencies.child_task_id → tasks.id (ON DELETE CASCADE)`
+  - `employees` - сотрудники
+  - `tasks` - задачи
+  - `task_dependencies` - зависимости задач
+- Настроены внешние ключи (FOREIGN KEY) и правила удаления: 
+    - `tasks.owner_id → employees.id (ON DELETE PROTECT)`
+    - `tasks.assignee_id → employees.id (ON DELETE SET NULL)` 
+    - `task_dependencies.parent_task_id → tasks.id (ON DELETE CASCADE)`
+    - `task_dependencies.child_task_id → tasks.id (ON DELETE CASCADE)`
 - Добавлены ограничения целостности:
   - UNIQUE для запрета дублирования зависимостей задач
   - CHECK для запрета зависимости задачи от самой себя
+  - CHECK (assignee_id IS NULL OR owner_id <> assignee_id) - владелец задачи не может быть её исполнителем
 - Добавлены индексы для ускорения фильтрации и аналитики:
   - по статусу задачи
   - по сроку выполнения
@@ -21,6 +23,7 @@
 - Модели описаны через Django ORM
 - Миграции успешно применены
 - Структура БД проверена через pgAdmin 4
+- Ограничения целостности реализованы как на уровне ORM, так и на уровне PostgreSQL
 
 ### Django Admin
 - Подключена и настроена административная панель
@@ -34,12 +37,14 @@
 
 ### Логика задач
 - Добавлены статусы задач:
-  - NEW
-  - IN_PROGRESS
-  - RETURNED
-  - DONE
+  - NEW - задача создана
+  - IN_PROGRESS - задача в работе
+  - REVIEW - задача передана на проверку
+  - DONE - задача завершена
 - Реализована возможность прикрепления отчёта (файла) к задаче
+- Если задача не принята на проверке, она возвращается в статус IN_PROGRESS с комментарием проверяющего
 - Введено правило:
-  - отчёт разрешён только для задач со статусами DONE и RETURNED
+  - отчёт разрешён только для задач со статусами DONE и REVIEW
+  - обязателен для статуса DONE
 - Валидация реализована на уровне модели (`clean()` + `full_clean()`),
-  что обеспечивает единое поведение для Django admin и будущего REST API
+  что обеспечивает единое поведение для Django admin и будущего REST API (DRF)
