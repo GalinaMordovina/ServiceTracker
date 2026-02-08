@@ -29,6 +29,8 @@ INSTALLED_APPS = [
 
     # сторонние
     "rest_framework",
+    "django_filters",
+
     # наши приложения
     "tracker",
 ]
