@@ -1,10 +1,11 @@
 from rest_framework.routers import DefaultRouter
 
-from tracker.api.views import EmployeeViewSet
+from tracker.api.views import EmployeeViewSet, TaskViewSet
 
-# Роутер сам создаст все CRUD-эндпоинты для EmployeeViewSet
+
 router = DefaultRouter()
 router.register("employees", EmployeeViewSet, basename="employees")
+router.register("tasks", TaskViewSet, basename="tasks")
 
 # готовый список urlpattern'ов
 urlpatterns = router.urls
