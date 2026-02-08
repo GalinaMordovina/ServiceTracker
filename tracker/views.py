@@ -9,4 +9,5 @@ class HealthCheckView(APIView):
     permission_classes = []
 
     def get(self, request):
+        _ = request  # чтобы не висело предупреждения (в след ветке продолжу)
         return Response({"status": "ok"})

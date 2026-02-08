@@ -107,7 +107,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-# USE_L10N = True # В новых версиях Django USE_L10N уже не нужно. Его лучше удалить?
 
 # Статические и медиа-файлы
 STATIC_URL = 'static/'
@@ -118,3 +117,14 @@ MEDIA_ROOT = BASE_DIR / "media"
 # Это настройка Django, которая определяет тип поля первичного ключа (id),
 # создаваемого по умолчанию для всех моделей, если я явно не указала id в модели.
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Настройки Django REST Framework
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+        "rest_framework.renderers.BrowsableAPIRenderer",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
+}

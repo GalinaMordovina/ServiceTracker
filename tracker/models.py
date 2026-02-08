@@ -90,6 +90,8 @@ class Task(models.Model):
         on_delete=models.PROTECT,
         related_name="owned_tasks",
         verbose_name="Владелец задачи",
+        null=True,                  # временно разрешаем NULL
+        blank=True,                 # временно разрешаем пустое значение в формах/админке
     )
     status = models.CharField(
         max_length=20,
