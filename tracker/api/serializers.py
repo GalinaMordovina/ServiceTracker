@@ -47,17 +47,28 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs: dict) -> dict:
         """
-        Межполевная валидация.
+        Межполевная валидация. Корректно работает для POST/PUT/PATCH.
         Проверяем логические связи между несколькими полями входного запроса.
         """
         email = attrs.get("email")
-        is_active = attrs.get("is_active", True)
+        is_active = attrs.get("is_active")
+
+        if self.instance is not None:
+            # PATCH: берём из instance, если поле не передали
+            if self.partial:
+                if "email" is None:
+                    email = self.instance.email
+                if "is_active" is None:
+                    is_active = self.instance.is_active
+            # PUT: attrs содержит полную модель и ничего не подставляем
+        else:
+            # POST: если is_active не передали, считаем True
+            if is_active is None:
+                is_active = True
 
         if is_active and not email:
             raise serializers.ValidationError(
-                {
-                    "email": "Для активного сотрудника необходимо указать email."
-                }
+                {"email": "Для активного сотрудника необходимо указать email."}
             )
 
         return attrs

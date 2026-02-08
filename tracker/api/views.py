@@ -27,4 +27,4 @@ class EmployeeViewSet(ModelViewSet):
     filter_backends = [SearchFilter]
 
     # Поля, по которым разрешён поиск
-    search_fields = ["full_name"]
+    search_fields = ["full_name", "position", "email"]
