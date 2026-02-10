@@ -168,13 +168,13 @@ class TaskDependency(models.Model):
     Описывает связь: родительская задача -> дочерняя задача.
     """
 
-    parent_task = models.ForeignKey(
+    parent_task = models.ForeignKey(            # блокирующая задача
         Task,
         on_delete=models.CASCADE,
         related_name="child_dependencies",
         verbose_name="Родительская задача",
     )
-    child_task = models.ForeignKey(
+    child_task = models.ForeignKey(             # зависимая задача
         Task,
         on_delete=models.CASCADE,
         related_name="parent_dependencies",
