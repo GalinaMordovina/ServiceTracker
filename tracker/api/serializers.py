@@ -164,3 +164,40 @@ class TaskSerializer(serializers.ModelSerializer):
             )
 
         return attrs
+
+
+# Это не ModelSerializer ибо формат ответа "аналитический", а не CRUD
+class TaskShortSerializer(serializers.ModelSerializer):
+    """
+    Короткий сериализатор задачи для аналитики.
+    Используется в списке активных задач сотрудника.
+    """
+    class Meta:
+        model = Task
+        fields = ("id", "title", "status", "due_date")
+
+
+class BusyEmployeeSerializer(serializers.Serializer):
+    """
+    Короткий сериализатор задачи для аналитики "Занятые сотрудники".
+    Используется в списке активных задач сотрудника.
+    """
+    id = serializers.IntegerField()                     # обычное числовое поле (соответствует Employee.id)
+    full_name = serializers.CharField()                 # строковое поле (соответствует Employee.full_name)
+    active_tasks_count = serializers.IntegerField()     # количество активных задач (вычисляется в analytics.py)
+    active_tasks = TaskShortSerializer(many=True)       # список активных задач сотрудника
+
+
+class ImportantTaskSerializer(serializers.Serializer):
+    """
+    Сериализатор для выдачи "важных задач" в аналитике.
+    Результат: "важная задача" + "рекомендованный сотрудник"
+    """
+
+    id = serializers.IntegerField()
+    title = serializers.CharField()
+    due_date = serializers.DateField()
+
+    # Рекомендованный сотрудник (может быть None, если сотрудников нет или логика не нашла кандидата)
+    suggested_employee_id = serializers.IntegerField(allow_null=True)
+    suggested_employee_full_name = serializers.CharField(allow_null=True)
