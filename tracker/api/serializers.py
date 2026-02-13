@@ -105,9 +105,9 @@ class TaskSerializer(serializers.ModelSerializer):
         """Возвращаем ФИО исполнителя, если он назначен."""
         return obj.assignee.full_name if obj.assignee else None
 
-    def get_owner_full_name(self, obj: Task) -> str:
-        """Владелец задачи обязателен, поэтому None быть не должно."""  # а если будет что делать?
-        return obj.owner.full_name
+    def get_owner_full_name(self, obj: Task) -> str | None:
+        """Владелец задачи обязателен, если он назначен."""
+        return obj.owner.full_name if obj.owner else None
 
     def validate_due_date(self, value):  # можно отключить/изменить правило
         """

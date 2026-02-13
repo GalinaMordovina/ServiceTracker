@@ -1,49 +1,108 @@
 ## Трекер задач сотрудников
 
-### Описание:
-Сделана ветка аналитики + проверка эндпоинтов в Postman.
+### Исправления и улучшения:
+1. Устранено дублирование эндпоинта `important-tasks`
+Ранее в AnalyticsViewSet было объявлено два метода с одинаковым:
+```
+@action(detail=False, url_path="important-tasks")
+```
+В Python второй метод перезаписывал первый, что приводило к скрытому багу.
 
-#### Что реализовано:
+#### Исправление:
+Оставлен один метод `important_tasks` и реализована версия с рекомендацией сотрудника
 
-- Добавлены аналитические эндпоинты:
+2. Безопасная обработка nullable owner
 
-    - `GET /api/analytics/busy-employees/` - сотрудники с активными задачами (`IN_PROGRESS/REVIEW`), сортировка по количеству активных задач (по убыванию), в ответе список задач.
+Метод `get_owner_full_name()` обновлён:
+```
+def get_owner_full_name(self, obj):
+    return obj.owner.full_name if obj.owner else None
+```
+Теперь при owner=None сериализация не приводит к AttributeError.
 
-    - `GET /api/analytics/important-tasks/` - задачи со статусом `NEW`, от которых зависит хотя бы одна активная задача через `TaskDependency`.
+3. Оптимизация функции `get_important_tasks_with_suggestion`
+Устранена проблема N+1 запросов.
 
-- Добавлен подбор рекомендуемого сотрудника:
+Ранее внутри цикла выполнялся запрос к БД для каждого task:
+```
+Employee.objects.filter(id=suggested_employee_id)
+```
+#### Теперь:
+ФИО активных сотрудников загружаются одним запросом и используется словарь id -> full_name
+```
+employee_names = dict(
+    Employee.objects.filter(is_active=True).values_list("id", "full_name")
+)
+```
+Преимущества:
+- меньше SQL-запросов
+- более масштабируемое решение
+- сохранён контракт сериализатора
 
-    - кандидат с минимальной нагрузкой (мин. число активных задач)
+## Аутентификация и роли
 
-    - либо исполнитель зависимой активной задачи, если его нагрузка <= min_load + 2
+В проекте реализована JWT-аутентификация с разграничением прав доступа по ролям.
 
-- Добавлены аналитические сериализаторы:
+Используемые технологии
+- djangorestframework-simplejwt
+- Django Groups
+- кастомные permission classes
 
-    - `TaskShortSerializer`, `BusyEmployeeSerializer`, `ImportantTaskSerializer`
+Используются три роли:
+- Admin (администратор)
+- Manager (менеджер)
+- Employee (пользователь)
 
-- Вынесена бизнес-логика аналитики в отдельный модуль `api/analytics.py` (чтобы `views.py` был “тонким”)
+### Admin
 
-### Проверка:
-- эндпоинты CRUD (`employees/tasks`) работают
-- `analytics` эндпоинты возвращают 200 OK и корректную структуру ответа
+Полный доступ к системе:
+- CRUD сотрудников ✅ 
+- CRUD задач  ✅ 
+- Аналитика (busy-employees, important-tasks) ✅ 
+- Удаление задач ✅ 
 
-### Мини-чеклист Postman
-#### Employees
+### Manager
 
-- `GET /api/employees/`
-- `POST /api/employees/`
-- `PATCH /api/employees/{id}/`
-- `DELETE /api/employees/{id}/`
-- негативный кейс: `PATCH с { "email": null, "is_active": true }` = 400
+Ограниченный управленческий доступ:
+- Просмотр сотрудников ✅
+- Создание задач ✅ 
+- Изменение задач ✅  
+- Аналитика ✅ 
+ 
+Запрещено удаление задач ❌
 
-#### Tasks
+### Employee
+Минимальные права:
+- Просмотр задач ✅
 
-- `GET /api/tasks/`
-- фильтры: `?status=NEW`, `?assignee=2`, `?owner=4`
-- поиск: `?search=отчет`
-- сортировка: `?ordering=due_date`, `?ordering=-created_at`
+Запрещено: 
+- Создание задач ❌ 
+- Изменение задач  ❌ 
+- Удаление задач  ❌ 
+- Список сотрудников ❌  
+- Аналитика ❌
+ 
+### Получение токена:
+```
+POST /api/auth/token/
+```
+Тело запроса:
+```
+{
+  "username": "admin_user",
+  "password": "admin123"
+}
+```
+Ответ:
+```
+{
+  "refresh": "....",
+  "access": "...."
+}
+```
+Использование токена
 
-#### Analytics
-
-- `GET /api/analytics/busy-employees/`
-- `GET /api/analytics/important-tasks/`
+В каждый защищённый запрос необходимо передавать заголовок:
+```
+Authorization: Bearer <access_token>
+```
