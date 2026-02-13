@@ -134,6 +134,13 @@ def get_important_tasks_with_suggestion() -> List[Dict[str, Any]]:
         min_load = min(load_by_employee.values())
         min_load_employee_id = min(load_by_employee, key=load_by_employee.get)
 
+    # Загружаем сразу всех активных сотрудников одним запросом
+    employee_names: Dict[int, str] = dict(
+        Employee.objects
+        .filter(is_active=True)
+        .values_list("id", "full_name")
+    )
+
     important_qs = (
         Task.objects
         .filter(
@@ -164,16 +171,12 @@ def get_important_tasks_with_suggestion() -> List[Dict[str, Any]]:
             if child_load <= min_load + 2:
                 suggested_employee_id = child_assignee_id
 
-        # ФИО кандидата
-        suggested_full_name = None
-        if suggested_employee_id is not None:
-            emp = (
-                Employee.objects
-                .filter(id=suggested_employee_id)
-                .only("full_name")
-                .first()
-            )
-            suggested_full_name = emp.full_name if emp else None
+        # ФИО кандидата из заранее подготовленного словаря
+        suggested_full_name = (
+            employee_names.get(suggested_employee_id)
+            if suggested_employee_id is not None
+            else None
+        )
 
         # КЛЮЧИ должны совпадать с ImportantTaskSerializer
         results.append(

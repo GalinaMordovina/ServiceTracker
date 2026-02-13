@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+from datetime import timedelta
 
 from dotenv import load_dotenv
 
@@ -123,10 +124,20 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Настройки Django REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
-        "rest_framework.renderers.JSONRenderer",
-        "rest_framework.renderers.BrowsableAPIRenderer",
+        "rest_framework.renderers.JSONRenderer",            # отдаёт ответы в JSON
+        "rest_framework.renderers.BrowsableAPIRenderer",    # включает красивую HTML-страницу DRF
     ],
+    "DEFAULT_AUTHENTICATION_CLASSES": (                     # токены Bearer
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",
+        "rest_framework.permissions.IsAuthenticated",
     ],
+
+}
+
+# Увеличим lifetime для проверки
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=2),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
