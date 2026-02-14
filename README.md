@@ -1,26 +1,28 @@
 ## Трекер задач сотрудников
 
-### Тестирование
-В проекте реализовано тестирование с использованием:
-- pytest
-- pytest-django
-- pytest-cov
+### В рамках данной ветки реализована автогенерация OpenAPI-документации для дипломного проекта ServiceTracker API.
 
-#### Покрытие тестами > 90%
+Что сделано:
+- Подключена библиотека `drf-spectacular`
+- Настроена генерация OpenAPI-схемы
+- Добавлены маршруты:
+  - /api/schema/ 
+  - /api/docs/swagger/ 
+  - /api/docs/redoc/
 
-#### Тестируются:
-- Права доступа (Admin / Manager / Employee)
-- CRUD для задач и сотрудников
-- Валидация модели Task
-- Аналитические эндпоинты:
-  - /api/analytics/busy-employees/ 
-  - /api/analytics/important-tasks/
+- Настроена JWT Bearer security scheme
+- Добавлены @extend_schema для аналитических action’ов:
+  - busy-employees 
+  - important-tasks
+- HealthCheck endpoint исключён из документации как инфраструктурный
 
-#### Запуск тестов:
-```
-python -m pytest -q
-```
-#### Проверка покрытия:
-```
-python -m pytest --cov=tracker
-```
+Проверено, что:
+- JWT продолжает работать
+- permissions не изменились
+- pytest проходит без ошибок
+
+Проверка:
+
+- Swagger UI: `/api/docs/swagger/`
+- ReDoc: `/api/docs/redoc/`
+- OpenAPI JSON: `/api/schema/`

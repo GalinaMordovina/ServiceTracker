@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     # сторонние
     "rest_framework",
     "django_filters",
+    "drf_spectacular",
 
     # наши приложения
     "tracker",
@@ -124,16 +125,42 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Настройки Django REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
-        "rest_framework.renderers.JSONRenderer",            # отдаёт ответы в JSON
-        "rest_framework.renderers.BrowsableAPIRenderer",    # включает красивую HTML-страницу DRF
+        "rest_framework.renderers.JSONRenderer",                   # отдаёт ответы в JSON
+        "rest_framework.renderers.BrowsableAPIRenderer",           # включает красивую HTML-страницу DRF
     ],
-    "DEFAULT_AUTHENTICATION_CLASSES": (                     # токены Bearer
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",  # подключает генерацию схемы
+    "DEFAULT_AUTHENTICATION_CLASSES": (                            # JWT авторизация (Bearer token)
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": [
+    "DEFAULT_PERMISSION_CLASSES": [                                 # # доступ только авторизованным
         "rest_framework.permissions.IsAuthenticated",
     ],
 
+}
+
+# Настройки drf-spectacular
+SPECTACULAR_SETTINGS = {
+
+    # Название API (отображается в Swagger и ReDoc вверху страницы)
+    "TITLE": "ServiceTracker API",
+
+    # Краткое описание проекта (что это за API)
+    "DESCRIPTION": "Автодокументация API (employees, tasks, analytics, auth)",
+
+    # Версия API (можно менять при развитии проекта)
+    "VERSION": "1.0.0",
+
+    # Описание схемы безопасности для Swagger (используем Bearer JWT токены)
+    "SECURITY_SCHEMES": {
+        "BearerAuth": {
+            "type": "http",            # тип авторизации HTTP
+            "scheme": "bearer",        # схема Bearer
+            "bearerFormat": "JWT",     # формат токена JWT
+        }
+    },
+
+    # Кнопка "Authorize"
+    "SECURITY": [{"BearerAuth": []}],
 }
 
 # Увеличим lifetime для проверки
