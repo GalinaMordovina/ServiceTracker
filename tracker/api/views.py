@@ -4,6 +4,7 @@ from rest_framework.response import Response  # вернуть JSON коррек
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import SAFE_METHODS
+from drf_spectacular.utils import extend_schema
 
 from tracker.api.permissions import IsAdminOrManager, IsAdminGroup
 from tracker.models import Employee, Task
@@ -100,6 +101,15 @@ class AnalyticsViewSet(ViewSet):
         # Аналитика доступна только Admin/Manager
         return [IsAdminOrManager()]
 
+    @extend_schema(
+        summary="Занятые сотрудники",
+        description=(
+                "Возвращает список активных сотрудников с количеством активных задач и списком этих задач. "
+                "Список отсортирован по количеству активных задач по убыванию."
+        ),
+        responses={200: BusyEmployeeSerializer(many=True)},
+    )
+
     @action(detail=False, methods=["get"], url_path="busy-employees")
     def busy_employees(self, request):
         """
@@ -109,6 +119,15 @@ class AnalyticsViewSet(ViewSet):
 
         serializer = BusyEmployeeSerializer(data, many=True)
         return Response(serializer.data)  # (режим ввода)
+
+    @extend_schema(
+        summary="Важные задачи",
+        description=(
+                "Возвращает список важных задач и рекомендованного сотрудника для каждой задачи. "
+                "Рекомендация может быть пустой (null), если подходящий сотрудник не найден."
+        ),
+        responses={200: ImportantTaskSerializer(many=True)},
+    )
 
     @action(detail=False, methods=["get"], url_path="important-tasks")
     def important_tasks(self, request):
