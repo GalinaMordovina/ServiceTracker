@@ -106,7 +106,7 @@ class AnalyticsViewSet(ViewSet):
         Возвращает список занятых сотрудников с количеством и списком активных задач.
         """
         data = get_busy_employees()  # возвращает list[dict]
-        # Важно: сериализатор создаём через instance= (режим вывода)
+
         serializer = BusyEmployeeSerializer(data, many=True)
         return Response(serializer.data)  # (режим ввода)
 
