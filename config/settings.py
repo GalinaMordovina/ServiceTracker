@@ -13,7 +13,7 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # Режим отладки:
-DEBUG = os.getenv("DEBUG", "False") == "True"
+DEBUG = True if os.getenv("DEBUG") == "True" else False
 
 # Список разрешённых хостов
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
@@ -78,7 +78,7 @@ DATABASES = {
         "NAME": os.getenv("POSTGRES_DB"),  # Имя базы данных
         "USER": os.getenv("POSTGRES_USER"),  # Пользователь
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),  # Пароль пользователя
-        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
+        "HOST": os.getenv("POSTGRES_HOST", "db"),
         "PORT": os.getenv("POSTGRES_PORT", "5432"),
     }
 }
@@ -114,6 +114,7 @@ USE_TZ = True
 
 # Статические и медиа-файлы
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
