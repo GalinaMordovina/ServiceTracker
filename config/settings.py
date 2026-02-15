@@ -132,9 +132,11 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (                            # JWT авторизация (Bearer token)
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": [                                 # # доступ только авторизованным
+    "DEFAULT_PERMISSION_CLASSES": [                                 # доступ только авторизованным
         "rest_framework.permissions.IsAuthenticated",
     ],
+    # когда происходит ошибка, то вызывай функцию custom_exception_handler
+    "EXCEPTION_HANDLER": "tracker.api.exceptions.custom_exception_handler",
 
 }
 
@@ -167,4 +169,21 @@ SPECTACULAR_SETTINGS = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=2),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
+
+# Логирование: Logger -> Handler -> Formatter -> Вывод
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,   # если поставить True,то Django отключит стандартные логгеры
+    "formatters": {                      # формат
+        "simple": {"format": "%(levelname)s | %(name)s | %(message)s"},
+    },
+    "handlers": {                        # куда писать лог
+        "console": {"class": "logging.StreamHandler", "formatter": "simple"},
+    },
+    "loggers": {
+        "tracker": {"handlers": ["console"], "level": "INFO", "propagate": False},  # не передавать лог выше в root-логгер
+        "django.request": {"handlers": ["console"], "level": "WARNING", "propagate": False},  # показывать только WARNING и выше
+    },
+    "root": {"handlers": ["console"], "level": "WARNING"},  # "запасной" логгер (WARNING и выше)
 }

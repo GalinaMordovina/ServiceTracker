@@ -5,6 +5,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import SAFE_METHODS
 from drf_spectacular.utils import extend_schema
+import logging                                 # для логов
 
 from tracker.api.permissions import IsAdminOrManager, IsAdminGroup
 from tracker.models import Employee, Task
@@ -18,6 +19,9 @@ from tracker.api.serializers import (
     BusyEmployeeSerializer,
     ImportantTaskSerializer,
 )
+
+
+logger = logging.getLogger("tracker")
 
 
 class EmployeeViewSet(ModelViewSet):
@@ -109,12 +113,13 @@ class AnalyticsViewSet(ViewSet):
         ),
         responses={200: BusyEmployeeSerializer(many=True)},
     )
-
     @action(detail=False, methods=["get"], url_path="busy-employees")
     def busy_employees(self, request):
         """
         Возвращает список занятых сотрудников с количеством и списком активных задач.
         """
+        logger.info("Analytics busy-employees requested (user_id=%s)", getattr(request.user, "id", None))
+
         data = get_busy_employees()  # возвращает list[dict]
 
         serializer = BusyEmployeeSerializer(data, many=True)
@@ -128,12 +133,13 @@ class AnalyticsViewSet(ViewSet):
         ),
         responses={200: ImportantTaskSerializer(many=True)},
     )
-
     @action(detail=False, methods=["get"], url_path="important-tasks")
     def important_tasks(self, request):
         """
         Возвращает важные задачи + рекомендуемого сотрудника.
         """
+        logger.info("Analytics important-tasks requested (user_id=%s)", getattr(request.user, "id", None))
+
         data = get_important_tasks_with_suggestion()
         serializer = ImportantTaskSerializer(data, many=True)
         return Response(serializer.data)

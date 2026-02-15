@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import Q, F   # Q - логические условия AND, OR, NOT
                                     # F - ссылается на значение другого поля в этой же строке БД
 
+
 class Employee(models.Model):
     """
     Модель сотрудника (employees).
@@ -197,6 +198,7 @@ class TaskDependency(models.Model):
                 name="prevent_self_dependency",
             ),
         ]
+
     # возвращаю объекты, а не id (возможно поменяю)
     def __str__(self) -> str:
         return f"{self.parent_task} -> {self.child_task}"
