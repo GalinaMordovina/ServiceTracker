@@ -11,6 +11,7 @@ __pycache__/
 *.pyd
 *.sqlite3
 *.db
+.db.sqlite3
 
 # Виртуальные окружения
 venv/
